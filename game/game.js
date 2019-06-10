@@ -42,7 +42,7 @@ for (var i = 0; i < viengachConfig.totalRow; i++) {
 }
 
 var isGameOver = false;
-var gamePause = 0;
+var gamePause = true;
 
 // Xây dựng hình ảnh ----------------------------------------------------------------------------------------------
 function drawBall() {
@@ -84,13 +84,13 @@ document.addEventListener('keydown', function (event) {
 
     if (event.keyCode == 39) {
         thanhchan.isMovingRight = true;
-        gamePause = 1;
     }
 
     if (event.keyCode == 37) {
         thanhchan.isMovingLeft = true;
-        gamePause = 2;
-        // thanhchan.x -= thanhchan.speed;
+    }
+    if (event.keyCode == 38) {
+        thanhchan.isMovingUp = true;
     }
 });
 
@@ -98,28 +98,20 @@ document.addEventListener('keydown', function (event) {
 document.addEventListener('keyup', function (event) {
     if (event.keyCode == 39) {
         thanhchan.isMovingRight = false;
-        gamePause = 1;
+
     }
 
     if (event.keyCode == 37) {
         thanhchan.isMovingLeft = false;
-        gamePause = 2;
+
     }
 });
 
 // Cập nhật trạng thái ----------------------------------------------------------------------------
 // Cập nhật vị trí bóng
 function updateBongViTriMoi() {
-    if (gamePause == 0) {
-        x = x;
-        y = y;
-    } else if (gamePause == 1) {
         x += dx;
-        y -= dy;
-    } else if (gamePause == 2) {
-        x -= dx;
-        y -= dy;
-    }
+        y += dy;
 }
 
 // Cập nhật vị trí thanh chắn
@@ -163,14 +155,8 @@ function vachamGach() {
     viengachList.forEach(function (element) {
         if (!element.isBroken) {
             if (element.y <= y + radius && y + radius <= element.y + viengachConfig.heightBrick && element.x < x && x < element.x + viengachConfig.widthBrick) {
+                dy=
                 element.isBroken = true;
-                if (dx <0) {
-                    x = x - dx;
-                    y =y + dy;
-                } else {
-                    x = x - dx;
-                    y = y - dy;
-                }
             }
         }
     })
