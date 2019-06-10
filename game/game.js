@@ -3,7 +3,7 @@ var context = canvas.getContext('2d');
 document.getElementsByTagName("canvas")[0].style.border = " 2px solid #eaeaea"
 
 var thanhchan = {
-    width: 70,
+    width: 200,
     height: 10,
     x: 100,
     y: canvas.height - 10,
@@ -13,8 +13,8 @@ var thanhchan = {
 
 };
 
-var dx = 2.5;
-var dy = 2.2;
+var dx = 5;
+var dy = 5;
 var radius = 5;
 var x = thanhchan.x + (thanhchan.width / 2);
 var y = canvas.height - thanhchan.height - radius;
@@ -154,8 +154,9 @@ function suliBongvaChamThanhChan() {
 function vachamGach() {
     viengachList.forEach(function (element) {
         if (!element.isBroken) {
-            if (element.y <= y + radius && y + radius <= element.y + viengachConfig.heightBrick && element.x < x && x < element.x + viengachConfig.widthBrick) {
-                dy=
+            if (x >= element.x && x <= element.x + viengachConfig.widthBrick &&
+            y + radius >= element.y && y -radius<= element.y +viengachConfig.heightBrick) {
+                dy= -dy;
                 element.isBroken = true;
             }
         }
