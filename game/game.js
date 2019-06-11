@@ -3,7 +3,7 @@ var context = canvas.getContext('2d');
 document.getElementsByTagName("canvas")[0].style.border = " 2px solid #eaeaea"
 
 var thanhchan = {
-    width: 200,
+    width: 80,
     height: 10,
     x: 100,
     y: canvas.height - 10,
@@ -14,11 +14,12 @@ var thanhchan = {
 };
 
 var dx = 5;
-var dy = 5;
+var dy = 6.5;
 var radius = 5;
 var x = thanhchan.x + (thanhchan.width / 2);
 var y = canvas.height - thanhchan.height - radius;
-
+var x_45 = radius / Math.sqrt(2);
+var y_45 = radius / Math.sqrt(2);
 var viengachConfig = {
     offsetX: 25,
     marginX: 10.2,
@@ -42,12 +43,15 @@ for (var i = 0; i < viengachConfig.totalRow; i++) {
 }
 
 var isGameOver = false;
-var gamePause = true;
+var isGamewin = false;
+var UserScore = 0;
+var maxScore = viengachList.length;
 
-// Xây dựng hình ảnh ----------------------------------------------------------------------------------------------
+// Xây dựng hình ảnh ---------------------------------------------------------------------------------------------------
 function drawBall() {
     context.beginPath();
     context.arc(x, y, radius, 0, Math.PI * 2);
+
     context.fillStyle = "red";
     context.fill();
     context.closePath();
@@ -76,7 +80,7 @@ function drawGach() {
     })
 }
 
-// Bắt sự kiện bàn phím -------------------------------------------------------------------------------------
+// Bắt sự kiện bàn phím ------------------------------------------------------------------------------------------------
 
 // Bắt sự kiện nhấn phím xuống
 document.addEventListener('keydown', function (event) {
@@ -107,11 +111,11 @@ document.addEventListener('keyup', function (event) {
     }
 });
 
-// Cập nhật trạng thái ----------------------------------------------------------------------------
+// Cập nhật trạng thái -------------------------------------------------------------------------------------------------
 // Cập nhật vị trí bóng
 function updateBongViTriMoi() {
-        x += dx;
-        y += dy;
+    x += dx;
+    y += dy;
 }
 
 // Cập nhật vị trí thanh chắn
@@ -131,21 +135,44 @@ function updateVitriThanhChan() {
         }
     }
 }
+
 // Xử lý va chạm ---------------------------------------------------------------------------------------
 // Xử lý bóng va chạm cạnh màn hình
 function suliBongVaCham() {
-    if ((x) > (canvas.width - radius) || (x) < radius) {
+    if ((x) >= (canvas.width - radius) || (x) <= radius) {
         dx = -dx;
     }
 
-    if (y < radius || y > canvas.height - radius) {
+    if (y <= radius || y > canvas.height - radius) {
         dy = -dy;
     }
 }
 
 // Xử lý bóng va chạm thanh chắn
 function suliBongvaChamThanhChan() {
-    if (x > thanhchan.x && x <= thanhchan.x + thanhchan.width && y + radius >= (canvas.height - thanhchan.height)) {
+
+    if (x + x_45 > thanhchan.x && x - x_45 < thanhchan.x + thanhchan.width && y + y_45 > (canvas.height - thanhchan.height)) {
+        if (thanhchan.isMovingRight == true && thanhchan.x + thanhchan.width < canvas.width && dx >= 0) {
+            dx = dx + 1;
+            dy = -dy;
+        } else if (thanhchan.isMovingRight == true && thanhchan.x + thanhchan.width < canvas.width && dx < 0) {
+            dx = dx + 1;
+            dy = -dy;
+        } else if (thanhchan.isMovingLeft == true && thanhchan.x > 0 && dx < 0) {
+            dx = dx - 1;
+            dy = -dy;
+        } else if (thanhchan.isMovingLeft == true && thanhchan.x > 0 && dx >= 0) {
+            dx = dx - 1;
+            dy = -dy;
+        } else {
+            dy = -dy;
+        }
+
+    } else if (x + x_45 == thanhchan.x && y + y_45 > (canvas.height - thanhchan.height)) {
+        dx = -dx;
+        dy = -dy;
+    } else if (x - x_45 == thanhchan.x + thanhchan.width && y + y_45 > (canvas.height - thanhchan.height)) {
+        dx = -dx;
         dy = -dy;
     }
 }
@@ -154,55 +181,165 @@ function suliBongvaChamThanhChan() {
 function vachamGach() {
     viengachList.forEach(function (element) {
         if (!element.isBroken) {
-            if (x >= element.x && x <= element.x + viengachConfig.widthBrick &&
-            y + radius >= element.y && y -radius<= element.y +viengachConfig.heightBrick) {
-                dy= -dy;
+            if (x + radius >= element.x && x - radius <= element.x + viengachConfig.widthBrick &&
+                y + radius >= element.y && y - radius <= element.y + viengachConfig.heightBrick) {
+                dy = -dy;
                 element.isBroken = true;
+                UserScore += 1;
             }
         }
     })
 }
 
 
-
 // Kiểm tra trạng thái trò chơi -------------------------------------------------------------------
 function checkGameOver() {
     if (y > canvas.height - radius) {
         isGameOver = true;
+        isGamewin = false;
+    } else if (UserScore == maxScore) {
+        isGamewin = true;
+        isGameOver = false;
+        drawGach();
     }
 }
 
 function handleGameover() {
-    alert("game over");
+    if (isGamewin == true) {
+        alert(" You win");
+        hiddenPause();
+        hiddenResume();
+        hiddenStop();
+    } else if (isGameOver == true) {
+        alert("game over");
+        hiddenPause();
+        hiddenResume();
+        hiddenStop();
+    }
 }
 
 /**
- * main
+ * Hàm main
  * Dùng requestAnimation để tạo hành động mượt
  **/
 function draw() {
 
-    if (!isGameOver) {
+    if (!isGameOver && !isGamewin) {
         // xóa khung hình cũ
         context.clearRect(0, 0, canvas.width, canvas.height);
         drawThanhChan();
         drawBall();
         drawGach();
+        if (isPauseGame == false) {
+            suliBongVaCham();
+            suliBongvaChamThanhChan();
+            vachamGach();
 
-        suliBongVaCham();
-        suliBongvaChamThanhChan();
-        vachamGach();
-
-        updateVitriThanhChan();
-        updateBongViTriMoi();
-
-        checkGameOver();
-
-        // Hàm có sẵn của js tạo hiệu ứng mượt cho hình
-        requestAnimationFrame(draw)
+            updateVitriThanhChan();
+            updateBongViTriMoi();
+            document.getElementById("score").innerText = UserScore;
+            checkGameOver();
+            // Hàm có sẵn của js tạo hiệu ứng mượt cho hình
+            requestAnimationFrame(draw)
+        }
     } else {
         handleGameover();
     }
 }
 
 draw();
+
+// Hiển thị các phím chức năng
+var isPauseGame = true;
+
+// Xử lý hiển thị các button -------------------------------------------------------------------------------------------
+function hiddenResume() {
+    document.getElementById('resume').style.display = "none";
+}
+
+function hiddenStop() {
+    document.getElementById('stop').style.display = "none";
+}
+
+function hiddenPause() {
+    document.getElementById('pause').style.display = "none";
+}
+
+function showResume() {
+    document.getElementById('resume').style.display = "inline-block";
+}
+
+function showStop() {
+    document.getElementById('stop').style.display = "inline-block";
+}
+
+function showPause() {
+    document.getElementById('pause').style.display = "inline-block";
+}
+
+// Hiển thị điểm -------------------------------------------------------------------------------------------------------
+function showScore() {
+    $("#game").before("<p >Điểm: <span id='score'>0</span></p>");
+}
+
+showScore();
+
+// tạo các button ------------------------------------------------------------------------------------------------------
+function playGame() {
+    $("#game").after("<div id='action'></div>");
+    if (isPauseGame == true) {
+        $("#action").append("<button id='start' onclick='startGame()'>StartGame</button>");
+        document.getElementById('start').style.color = 'blue';
+        document.getElementById('start').style.display = 'inline-block';
+    }
+}
+
+function stopGame() {
+    $("#start").after("<button id='pause' onclick='pauseGame()'>PauseGame</button>");
+    $("#pause").after("<button id='resume' onclick='resumeGame()'>ResumeGame</button>");
+    $("#resume").after("<button id='stop' onclick='endGame()'>EndGame</button>");
+    hiddenPause();
+    hiddenResume();
+    hiddenStop();
+}
+
+// Xử lý các sự kiện button ------------------------------------------------------------------------------------------------
+function startGame() {
+    isGamewin = false;
+    isGameOver = false;
+    endGame();
+    isPauseGame = false;
+
+    showPause();
+    showStop();
+    draw();
+}
+
+function resumeGame() {
+    isPauseGame = false;
+    document.getElementById('resume').style.display = "none";
+    draw();
+}
+
+function pauseGame() {
+    isPauseGame = true;
+    document.getElementById('resume').style.display = "inline-block";
+}
+
+
+function endGame() {
+    isPauseGame = true;
+    x = thanhchan.x + (thanhchan.width / 2);
+    y = canvas.height - thanhchan.height - radius;
+    viengachList.forEach(function (element) {
+        element.isBroken = false;
+    })
+    hiddenResume();
+    hiddenPause();
+    hiddenStop();
+    draw();
+}
+
+playGame();
+stopGame();
+
